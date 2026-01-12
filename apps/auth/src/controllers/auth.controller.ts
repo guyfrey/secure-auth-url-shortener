@@ -4,6 +4,8 @@ import { redis } from '../services/redis';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/jwt';
+import { nanoid } from 'nanoid';
+import { sendVerificationEmail, sendPasswordResetEmail } from '../services/email';
 
 const registerSchema = z.object({
   email: z.string().email(),
@@ -28,6 +30,17 @@ export const register = async (req: Request, res: Response) => {
     const user = await prisma.user.create({
       data: { email, passwordHash, name },
     });
+
+      // After user creation in register function, add:
+  const verificationToken = nanoid(32);
+  const verificationExpires = new Date(Date.now() + 60 * 60 * 1000);
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { verificationToken, verificationExpires },
+  });
+
+await sendVerificationEmail(email, verificationToken);
 
     res.status(201).json({ message: 'User created', user: { id: user.id, email: user.email } });
   } catch (err) {
@@ -107,4 +120,79 @@ export const logout = async (req: Request, res: Response) => {
   }
   res.clearCookie('refreshToken');
   res.json({ message: 'Logged out' });
+};
+
+export const verifyEmail = async (req: Request, res: Response) => {
+  const { token } = req.query;
+  if (!token || typeof token !== 'string') return res.status(400).json({ error: 'Invalid token' });
+
+  const user = await prisma.user.findFirst({
+    where: {
+      verificationToken: token,
+      verificationExpires: { gt: new Date() },
+    },
+  });
+
+  if (!user) return res.status(400).json({ error: 'Invalid or expired token' });
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { isVerified: true, verificationToken: null, verificationExpires: null },
+  });
+
+  res.json({ message: 'Email verified successfully' });
+};
+
+export const forgotPassword = async (req: Request, res: Response) => {
+  const { email } = z.object({ email: z.string().email() }).parse(req.body);
+
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) {
+    // Don't reveal if email exists
+    return res.json({ message: 'If email exists, reset link sent' });
+  }
+
+  const token = nanoid(32);
+  const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { passwordResetToken: token, passwordResetExpires: expires },
+  });
+
+  await sendPasswordResetEmail(email, token);
+
+  res.json({ message: 'If email exists, reset link sent' });
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+  const { token, password } = z.object({
+    token: z.string(),
+    password: z.string().min(8),
+  }).parse(req.body);
+
+  const user = await prisma.user.findFirst({
+    where: {
+      passwordResetToken: token,
+      passwordResetExpires: { gt: new Date() },
+    },
+  });
+
+  if (!user) return res.status(400).json({ error: 'Invalid or expired token' });
+
+  const passwordHash = await bcrypt.hash(password, 12);
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      passwordHash,
+      passwordResetToken: null,
+      passwordResetExpires: null,
+    },
+  });
+
+  // Optional: revoke all refresh tokens
+  await redis.del(`refresh:${user.id}`);
+
+  res.json({ message: 'Password reset successfully' });
 };

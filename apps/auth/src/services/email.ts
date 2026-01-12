@@ -1,0 +1,35 @@
+import { Resend } from 'resend';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+export const sendVerificationEmail = async (email: string, token: string) => {
+  const link = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify?token=${token}`;
+
+  await resend.emails.send({
+    from: process.env.RESEND_FROM_EMAIL || 'noreply@auth.local',
+    to: email,
+    subject: 'Verify your email',
+    html: `
+      <h2>Welcome!</h2>
+      <p>Click the link below to verify your email:</p>
+      <a href="${link}">${link}</a>
+      <p>This link expires in 1 hour.</p>
+    `,
+  });
+};
+
+export const sendPasswordResetEmail = async (email: string, token: string) => {
+  const link = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${token}`;
+
+  await resend.emails.send({
+    from: process.env.RESEND_FROM_EMAIL || 'noreply@auth.local',
+    to: email,
+    subject: 'Reset your password',
+    html: `
+      <h2>Password Reset</h2>
+      <p>Click the link below to reset your password:</p>
+      <a href="${link}">${link}</a>
+      <p>This link expires in 1 hour.</p>
+    `,
+  });
+};

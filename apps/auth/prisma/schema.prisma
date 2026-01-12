@@ -17,6 +17,12 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  // New fields
+  verificationToken     String?
+  verificationExpires   DateTime?
+  passwordResetToken    String?
+  passwordResetExpires  DateTime?
+
   @@map("users")
 }
 
