@@ -16,6 +16,8 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+RUN npm install --include=dev
+RUN npx tsc
 # If you have a build step (e.g. tsc for TS)
 # RUN npm run build
 
