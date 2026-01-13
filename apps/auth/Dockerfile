@@ -1,42 +1,42 @@
 # Stage 1: Builder
-FROM node:20-alpine AS builder
-RUN apk add --no-cache python3 make g++
+FROM node:20-slim AS builder
+
+# Install build essentials for native modules (bcrypt, etc.)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci --include=dev
+RUN npm ci
 
 COPY . .
+
+# Build TS → should now work without permission issues
 RUN npm run build
 
-# Stage 2: Runner
-FROM node:20-alpine
-RUN apk add --no-cache libc6-compat
+# Stage 2: Production runner
+FROM node:20-slim
+
+# Minimal runtime deps
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libc6 \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-COPY package*.json ./
+# Copy built artifacts + prod deps only
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package*.json ./
 RUN npm ci --omit=dev
 
-COPY --from=builder /app/dist ./dist
+# If using Prisma (migrate on start)
+COPY --from=builder /app/prisma ./prisma
 
-EXPOSE 5000
-CMD ["node", "dist/server.js"]
+EXPOSE 3000
 
-# Stage 2: Production runner (slim image)
-FROM node:20-alpine AS runner
-
-# Add minimal deps if needed (e.g. for Prisma)
-RUN apk add --no-cache libc6-compat
-
-WORKDIR /app
-
-# Copy only what's needed from builder
-COPY --from=builder /app /app
-
-# Expose port (Railway uses $PORT env var)
-EXPOSE 5000
-
-# Start command – use process.env.PORT for Railway compatibility
+# Use Railway's $PORT if set
 CMD ["npm", "start"]
