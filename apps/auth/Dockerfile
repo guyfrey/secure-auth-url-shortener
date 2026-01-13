@@ -1,7 +1,7 @@
 # Stage 1: Builder
 FROM node:20-slim AS builder
 
-# Install build essentials for native modules (bcrypt, etc.)
+# Install build tools for native deps
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 \
     make \
@@ -11,32 +11,36 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 COPY package*.json ./
+
+# Install all deps (including dev for typescript)
 RUN npm ci
+
+# Install typescript globally → fixes permission/exec issues
+RUN npm install -g typescript
 
 COPY . .
 
-# Build TS → should now work without permission issues
+# Now tsc is global and executable
 RUN npm run build
 
 # Stage 2: Production runner
 FROM node:20-slim
 
-# Minimal runtime deps
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libc6 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Copy built artifacts + prod deps only
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/package*.json /app/
+
+# Only prod deps now
 RUN npm ci --omit=dev
 
-# If using Prisma (migrate on start)
-COPY --from=builder /app/prisma ./prisma
+# Prisma if needed
+COPY --from=builder /app/prisma ./prisma  
 
 EXPOSE 3000
 
-# Use Railway's $PORT if set
 CMD ["npm", "start"]
