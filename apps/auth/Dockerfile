@@ -10,8 +10,19 @@ RUN npm ci --include=dev
 COPY . .
 RUN npm run build
 
-# If you have a build step (e.g. tsc for TS)
-# RUN npm run build
+# Stage 2: Runner
+FROM node:20-alpine
+RUN apk add --no-cache libc6-compat
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+COPY --from=builder /app/dist ./dist
+
+EXPOSE 5000
+CMD ["node", "dist/server.js"]
 
 # Stage 2: Production runner (slim image)
 FROM node:20-alpine AS runner
