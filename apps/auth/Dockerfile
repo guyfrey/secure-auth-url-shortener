@@ -36,7 +36,7 @@ WORKDIR /app
 COPY --from=builder /app /app
 
 # Expose port (Railway uses $PORT env var)
-EXPOSE 3000
+EXPOSE 5000
 
 # Start command – use process.env.PORT for Railway compatibility
 CMD ["npm", "start"]
