@@ -1,23 +1,15 @@
-# Stage 1: Builder (install deps + build if needed)
+# Stage 1: Builder
 FROM node:20-alpine AS builder
-
-# Install dependencies needed for native modules (bcrypt, etc.)
 RUN apk add --no-cache python3 make g++
 
 WORKDIR /app
 
-# Copy package files first → cache this layer
 COPY package*.json ./
+RUN npm ci --include=dev
 
-# Use npm ci for exact lockfile install (faster & reproducible)
-# --omit=dev skips dev deps in prod, but keep for build if you have build scripts
-RUN npm ci
-
-# Copy source code
 COPY . .
+RUN npm run build
 
-RUN npm install --include=dev
-RUN npx tsc
 # If you have a build step (e.g. tsc for TS)
 # RUN npm run build
 
