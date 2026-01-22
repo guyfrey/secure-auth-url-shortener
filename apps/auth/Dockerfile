@@ -28,6 +28,8 @@ COPY . .
 # Build – use plain tsc to avoid npx wrapper issues
 RUN tsc   # ← Change from npm run build if needed, or keep npm run build after updating scripts below
 
+COPY --from=builder /app/src ./src
+
 # Stage 2: Production runner
 FROM node:20-slim
 
