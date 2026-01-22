@@ -28,7 +28,6 @@ COPY . .
 # Build – use plain tsc to avoid npx wrapper issues
 RUN tsc   # ← Change from npm run build if needed, or keep npm run build after updating scripts below
 
-COPY --from=builder /app/src ./src
 
 # Stage 2: Production runner
 FROM node:20-slim
@@ -43,6 +42,7 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma  
+COPY --from=builder /app/src ./src
 RUN npm ci --omit=dev
 
 EXPOSE 3000
