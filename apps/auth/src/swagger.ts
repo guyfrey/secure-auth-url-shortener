@@ -9,7 +9,8 @@ const options = {
       description: 'Production-ready authentication service with JWT, refresh tokens, email verification, and password reset',
     },
     servers: [
-      { url: process.env.FRONTEND_URL || 'http://localhost:5000', description: 'Development server' },
+      { url: 'http://localhost:5000', description: 'Backend (local)' },
+      { url: process.env.FRONTEND_URL, description: 'Frontend proxy (optional)' },
     ],
     components: {
       securitySchemes: {
