@@ -8,7 +8,10 @@ import rateLimit from 'express-rate-limit';
 import { login, register, forgotPassword } from './controllers/auth.controller';
 import swaggerUi from 'swagger-ui-express';
 import { specs } from './swagger';
-
+import logger from './logger';
+import pinoHttp from 'pino-http';
+import helmet from 'helmet';
+import { ErrorRequestHandler, Request, Response, NextFunction } from 'express';
 
 dotenv.config(); // ✅ load .env first
 
@@ -44,7 +47,37 @@ app.post('/api/auth/forgot-password', limiter, forgotPassword);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 
+// Security headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      // Add more if needed for your Swagger UI or frontend
+    },
+  },
+}));
+
+// Pino request logging
+app.use(pinoHttp({
+  logger,
+  serializers: {
+    req: (req) => ({
+      method: req.method,
+      url: req.url,
+      remoteAddress: req.socket?.remoteAddress || req.ip,
+      userAgent: req.headers['user-agent'],
+    }),
+  },
+  customLogLevel: (req, res, err) => {
+    if (res.statusCode >= 500) return 'error';
+    if (res.statusCode >= 400) return 'warn';
+    return 'info';
+  },
+}));
+
+// Replace your health check with logger
 app.get('/health', (req, res) => {
+  logger.info('Health check requested');
   res.json({ status: 'OK', message: 'Auth server running!' });
 });
 
@@ -54,6 +87,23 @@ app.use('*', (req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
 
+// Define your error handler with proper types
+const errorHandler: ErrorRequestHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
+  console.error(err); // or your logging
+
+  const status = err.status || err.statusCode || 500;
+  const message = err.message || 'Internal Server Error';
+
+  res.status(status).json({
+    error: {
+      message,
+      ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+    },
+  });
+};
+
+app.use(errorHandler);
+
 app.listen(PORT, () => {
-  console.log(`Auth server running on http://localhost:${PORT}`);
+  logger.info({ message: `Auth server running on http://localhost:${PORT}` });
 });

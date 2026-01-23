@@ -1,10 +1,11 @@
 import { createClient } from 'redis';
+import logger from '../logger';
 
 const client = createClient({
   url: 'redis://localhost:6379',
 });
 
-client.on('error', (err) => console.log('Redis Client Error', err));
+client.on('error', (err) => logger.error('Redis Client Error', err));
 
 export const redis = client;
 

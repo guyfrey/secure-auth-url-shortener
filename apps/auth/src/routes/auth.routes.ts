@@ -9,7 +9,8 @@ import {
   forgotPassword,
   resetPassword,
 } from '../controllers/auth.controller';
-import { protect } from '../middleware/auth';
+import {getAllUsers} from "../controllers/admin.controller";
+import {protect, adminOnly} from "../middleware/auth";
 
 const router = Router();
 
@@ -21,6 +22,7 @@ router.post('/logout', logout);
 router.get('/verify-email', verifyEmail);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
+router.get('/users', protect, adminOnly, getAllUsers);
 
 /**
  * @swagger
@@ -204,6 +206,22 @@ router.post('/reset-password', resetPassword);
  *         description: Password reset email sent
  *       400:  
  *         description: Invalid or expired token
+ */
+
+
+/**
+ * @swagger
+ * /api/auth/users:
+ *   get:
+ *     summary: Get all users (admin only)
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of all users
+ *       401:
+ *         description: server error
  */
 
 export default router;
