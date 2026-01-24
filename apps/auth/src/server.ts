@@ -16,7 +16,8 @@ import { ErrorRequestHandler, Request, Response, NextFunction } from 'express';
 dotenv.config(); // ✅ load .env first
 
 const app = express();
-const PORT = process.env.PORT ;
+// In your main server file (index.ts / server.ts / app.ts)
+const PORT = process.env.PORT || 8080;  // Railway sets PORT; fallback for local dev
 
 (async () => {
   await connectRedis(); // ✅ connect Redis after env is loaded
@@ -104,6 +105,12 @@ const errorHandler: ErrorRequestHandler = (err: any, req: Request, res: Response
 
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-  logger.info({ message: `Auth server running on http://localhost:${PORT}` });
+
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Auth server running on http://0.0.0.0:${PORT}`);
+  // Optional: also log the public URL if you want
+  if (process.env.RAILWAY_PUBLIC_DOMAIN) {
+    console.log(`Public URL: https://${process.env.RAILWAY_PUBLIC_DOMAIN}`);
+  }
 });
