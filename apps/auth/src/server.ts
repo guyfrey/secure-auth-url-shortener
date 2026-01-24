@@ -20,9 +20,17 @@ const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
 
 
-(async () => {
-  await connectRedis(); // ✅ connect Redis after env is loaded
-})();
+//(async () => {
+ // await connectRedis(); // ✅ connect Redis after env is loaded
+//})();
+connectRedis()
+  .then(() => console.log('Redis connected successfully'))
+  .catch(err => console.error('Redis connect failed (non-blocking):', err));
+
+// Put this BEFORE any other app.use() or routes
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', uptime: process.uptime() });
+});
 
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
