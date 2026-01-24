@@ -17,7 +17,8 @@ dotenv.config(); // ✅ load .env first
 
 const app = express();
 // In your main server file (index.ts / server.ts / app.ts)
-const PORT = process.env.PORT || 8080;  // Railway sets PORT; fallback for local dev
+const PORT = parseInt(process.env.PORT ?? "5000", 10);
+
 
 (async () => {
   await connectRedis(); // ✅ connect Redis after env is loaded
@@ -104,7 +105,6 @@ const errorHandler: ErrorRequestHandler = (err: any, req: Request, res: Response
 };
 
 app.use(errorHandler);
-
 
 
 app.listen(PORT, '0.0.0.0', () => {
