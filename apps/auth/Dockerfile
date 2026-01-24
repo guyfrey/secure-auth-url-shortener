@@ -45,6 +45,5 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/src ./src
 RUN npm ci --omit=dev
 
-EXPOSE 5000
 
 CMD ["npm", "start"]
