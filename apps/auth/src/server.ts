@@ -17,7 +17,7 @@ dotenv.config(); // ✅ load .env first
 
 const app = express();
 // In your main server file (index.ts / server.ts / app.ts)
-const PORT = parseInt(process.env.PORT ?? "5000", 10);
+const PORT = process.env.PORT ? Number(process.env.PORT) : 5000;
 
 
 (async () => {
@@ -109,8 +109,9 @@ app.use(errorHandler);
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Auth server running on http://0.0.0.0:${PORT}`);
-  // Optional: also log the public URL if you want
+  
+  // Helpful for debugging on Railway
   if (process.env.RAILWAY_PUBLIC_DOMAIN) {
-    console.log(`Public URL: https://${process.env.RAILWAY_PUBLIC_DOMAIN}`);
+    console.log(`→ Public URL should be: https://${process.env.RAILWAY_PUBLIC_DOMAIN}`);
   }
 });
