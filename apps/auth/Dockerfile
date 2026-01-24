@@ -44,6 +44,8 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma  
 COPY --from=builder /app/src ./src
 RUN npm ci --omit=dev
+RUN npx prisma generate
+RUN npx prisma migrate deploy
 
 
 CMD ["npm", "start"]

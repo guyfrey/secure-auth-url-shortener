@@ -115,20 +115,7 @@ const errorHandler: ErrorRequestHandler = (err: any, req: Request, res: Response
 app.use(errorHandler);
 
 
-// Debug: List all registered routes
-console.log('Registered routes:');
-app._router.stack.forEach((middleware: any) => {
-  if (middleware.route) { // routes registered directly on app
-    console.log(`${Object.keys(middleware.route.methods)[0].toUpperCase()} ${middleware.route.path}`);
-  } else if (middleware.name === 'router') { // router middleware
-    middleware.handle.stack.forEach((handler: any) => {
-      if (handler.route) {
-        const path = middleware.regexp.toString().replace(/^\^\\\/|\\\//g, '').replace(/\\\//g, '/').replace(/\$$/, '');
-        console.log(`${Object.keys(handler.route.methods)[0].toUpperCase()} ${path}${handler.route.path}`);
-      }
-    });
-  }
-});
+
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Auth server running on http://0.0.0.0:${PORT}`);
