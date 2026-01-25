@@ -10,7 +10,7 @@ const options = {
     },
     servers: [
       { url: 'http://localhost:5000', description: 'Backend (local)' },
-      { url: process.env.FRONTEND_URL, description: 'Frontend proxy (optional)' },
+      { url: process.env.PORT, description: 'Frontend proxy (optional)' },
     ],
     components: {
       securitySchemes: {
