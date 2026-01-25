@@ -13,20 +13,22 @@ import pinoHttp from 'pino-http';
 import helmet from 'helmet';
 import { ErrorRequestHandler, Request, Response, NextFunction } from 'express';
 
-dotenv.config(); // ✅ load .env first
+dotenv.config(); // Load environment variables early
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
 
 
 (async () => {
- await connectRedis(); // ✅ connect Redis after env is loaded
+ await connectRedis(); //  connect Redis after env is loaded
 })();
+
+
 //connectRedis()
   //.then(() => console.log('Redis connected successfully'))
   //.catch(err => console.error('Redis connect failed (non-blocking):', err));
 
-// Put this BEFORE any other app.use() or routes
+
 //app.get('/health', (req, res) => {
 //  res.status(200).json({ status: 'ok', uptime: process.uptime() });
 //});
@@ -61,7 +63,7 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      // Add more if needed for your Swagger UI or frontend
+      
     },
   },
 }));
@@ -84,7 +86,7 @@ app.use(pinoHttp({
   },
 }));
 
-// Replace your health check with logger
+// /health check
 app.get('/health', (req, res) => {
   logger.info('Health check requested');
   res.json({ status: 'OK', message: 'Auth server running!' });
@@ -96,9 +98,9 @@ app.use('*', (req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
 
-// Define your error handler with proper types
+// error handler 
 const errorHandler: ErrorRequestHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
-  console.error(err); // or your logging
+  logger.error(err); 
 
   const status = err.status || err.statusCode || 500;
   const message = err.message || 'Internal Server Error';
@@ -117,11 +119,11 @@ app.use(errorHandler);
 
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Auth server running on http://0.0.0.0:${PORT}`);
+  logger.info(`Auth server running on http://0.0.0.0:${PORT}`);
   
 // Debug helper for Railway
-  console.log(`Railway assigned PORT: ${process.env.PORT || '(not set - using fallback)'}`);
+  logger.info(`Railway assigned PORT: ${process.env.PORT || '(not set - using fallback)'}`);
   if (process.env.RAILWAY_PUBLIC_DOMAIN) {
-    console.log(`Expected public access: https://${process.env.RAILWAY_PUBLIC_DOMAIN}`);
+    logger.info(`Expected public access: https://${process.env.RAILWAY_PUBLIC_DOMAIN}`);
   }
 });
