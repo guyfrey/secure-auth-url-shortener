@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "lib": ["ES2020"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "types": [//"jest,"
+     "node"],  // Keep this for Jest globals
+    "isolatedModules": true
+  },
+  "include": ["src/**/*"],
+  //"exclude": [
+    //"node_modules",
+    //"dist",
+    //"**/*.test.ts",          // ← Exclude all test files
+    //"**/*.spec.ts",
+    //"jest.setup.ts",         // ← Explicitly exclude setup
+    //"jest.config.ts"         // ← If you have it
+ // ]
+}
