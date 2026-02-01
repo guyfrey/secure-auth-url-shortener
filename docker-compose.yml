@@ -26,3 +26,26 @@ services:
 
 volumes:
   pgdata:
+
+shortener:
+    build:
+      context: .
+      dockerfile: apps/shortener/Dockerfile
+    container_name: url-shortener
+    ports:
+      - "5001:5001"
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/authdb?schema=public
+      - REDIS_URL=redis://redis:6379
+      - PORT=5001
+      - BASE_URL=http://localhost:5001
+      - NODE_ENV=development
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - .:/app
+    command: npm run dev --prefix apps/shortener
+
