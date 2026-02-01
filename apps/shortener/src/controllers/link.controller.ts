@@ -23,7 +23,8 @@ export const shorten = async (req: Request, res: Response) => {
     });
 
     if (existing) {
-      const shortUrl = `${process.env.BASE_URL || 'http://localhost:5001'}/${existing.shortCode}`;
+      const baseUrl = process.env.BASE_URL || 'http://localhost:5001';
+      const shortUrl = `${baseUrl}/api/${existing.shortCode}`;
       return res.json({
         shortUrl,
         originalUrl: normalizedUrl,
@@ -45,7 +46,8 @@ export const shorten = async (req: Request, res: Response) => {
       },
     });
 
-    const shortUrl = `${process.env.BASE_URL || 'http://localhost:5001'}/${shortCode}`;
+    const baseUrl = process.env.BASE_URL || 'http://localhost:5001';
+    const shortUrl = `${baseUrl}/api/${shortCode}`;
 
     logger?.info(`New short link created: ${shortCode} → ${normalizedUrl}`);
 
@@ -87,6 +89,27 @@ export const redirect = async (req: Request, res: Response) => {
         // Increment click count (use Redis for speed + eventual consistency with DB)
         await redis.incr(`clicks:${shortCode}`);
 
+        // Optional: Track more detailed analytics in Redis sets/hashes (for later dashboard)
+        const clickData = {
+          timestamp: new Date().toISOString(),
+          ip: req.ip || 'unknown',
+          userAgent: req.headers['user-agent'] || 'unknown',
+          referrer: req.get('referer') || 'direct',
+          // You can add geoip lookup later (e.g., via free API or library)
+        };
+
+        await redis.rPush(`clicks:details:${shortCode}`, JSON.stringify(clickData)); // list for recent clicks
+        await redis.lTrim(`clicks:details:${shortCode}`, 0, 999); // keep last 1000 clicks
+
+        // Optional: Increment unique visitors (using HyperLogLog for approx uniqueness)
+        await redis.pfAdd(`visitors:${shortCode}`, req.ip || 'anon');
+
+        // Increment in DB only if Redis is primary source (or use background job later)
+        await prisma.shortLink.update({
+          where: { id: link.id },
+          data: { clicks: { increment: 1 } },
+        });
+
         await prisma.click.create({
             data: {
                 linkId: link.id,
@@ -120,15 +143,22 @@ export const getStats = async (req: Request, res: Response) => {
     const redisClicks = await redis.get(`clicks:${shortCode}`);
     const totalClicks = redisClicks ? parseInt(redisClicks, 10) : link.clicks;
 
+    const uniqueVisitors = await redis.pfCount(`visitors:${shortCode}`);
+
+    const recent = await redis.lRange(`clicks:details:${shortCode}`, 0, 4);
+    const recentClicks = recent.map((json) => JSON.parse(json));
+
     res.json({
       shortCode,
       originalUrl: link.originalUrl,
       totalClicks,
+      uniqueVisitorsApprox: uniqueVisitors,
       createdAt: link.createdAt,
+      recentClicks, // for demo/debug
     });
   } catch (err) {
     logger?.error(err);
-    res.status(500).json({ error: 'Failed to fetch stats' });
+    res.status(500).json({ error: 'Failed to fetch stats', details: String(err) });
   }
 };
 
