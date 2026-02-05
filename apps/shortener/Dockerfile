@@ -31,5 +31,4 @@ COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 # Copy compiled app
 COPY --from=builder /app/dist ./dist
 
-EXPOSE 5001
 CMD ["npm", "start"]
