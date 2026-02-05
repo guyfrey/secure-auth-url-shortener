@@ -14,6 +14,9 @@ RUN npm ci
 # Copy the rest of the code
 COPY . .
 
+# Force executable permissions on prisma CLI binaries (this fixes the "permission denied")
+RUN chmod +x node_modules/.bin/prisma || true
+RUN chmod +x node_modules/prisma/libquery_engine* || true  
 # Optional: force generate again if needed (but postinstall should handle it)
 RUN npx prisma generate
 
