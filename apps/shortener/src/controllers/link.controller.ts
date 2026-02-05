@@ -23,7 +23,7 @@ export const shorten = async (req: Request, res: Response) => {
     });
 
     if (existing) {
-      const baseUrl = process.env.BASE_URL || 'http://localhost:5001';
+      const baseUrl = process.env.RAILWAY_URL|| 'http://localhost:5001';
       const shortUrl = `${baseUrl}/api/${existing.shortCode}`;
       return res.json({
         shortUrl,
@@ -46,7 +46,7 @@ export const shorten = async (req: Request, res: Response) => {
       },
     });
 
-    const baseUrl = process.env.BASE_URL || 'http://localhost:5001';
+    const baseUrl = process.env.RAILWAY_URL || 'http://localhost:5001';
     const shortUrl = `${baseUrl}/api/${shortCode}`;
 
     logger?.info(`New short link created: ${shortCode} → ${normalizedUrl}`);
