@@ -31,6 +31,6 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
 COPY --from=builder /app/dist ./dist
-
+RUN npx prisma generate
 
 CMD ["npm", "start"]

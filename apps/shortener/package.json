@@ -5,10 +5,10 @@
   "scripts": {
     "build": "tsc",
     "start": "npm run migrate && node dist/server.js",
-    "migrate": "prisma migrate deploy",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio"
   },
   "dependencies": {
