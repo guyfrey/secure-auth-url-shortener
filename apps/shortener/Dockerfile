@@ -1,47 +1,35 @@
 # Build stage
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 WORKDIR /app
 
-# Copy package files first (for caching)
+# Copy package files first (caching)
 COPY package*.json ./
 
-# Copy prisma schema BEFORE install/generate
-COPY prisma ./prisma
-
-# Now install → postinstall will see the schema and succeed
 RUN npm ci
 
-# Copy the rest of the code
+# Copy prisma schema & code
+COPY prisma ./prisma
 COPY . .
 
-# Force executable permissions on prisma CLI binaries (this fixes the "permission denied")
-RUN chmod +x node_modules/.bin/prisma || true
-RUN chmod +x node_modules/prisma/libquery_engine* || true  
-# Optional: force generate again if needed (but postinstall should handle it)
+# Generate Prisma client
 RUN npx prisma generate
 
 # Build TS
 RUN npm run build
 
 # Production stage
-FROM node:20-alpine
+FROM node:20-slim
 WORKDIR /app
 
-# Copy package files
 COPY --from=builder /app/package*.json ./
-
-# Install only prod deps
 RUN npm ci --only=production
 
-# Copy generated Prisma client files (critical!)
+# Copy generated Prisma files (required at runtime)
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
 # Copy compiled app
 COPY --from=builder /app/dist ./dist
-
-# Copy prisma schema if migrations needed later (optional)
-COPY --from=builder /app/prisma ./prisma
 
 EXPOSE 5001
 CMD ["npm", "start"]
