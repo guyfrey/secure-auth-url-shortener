@@ -4,45 +4,41 @@ import { prisma } from '../services/prisma';
 import { redis } from '../services/redis';
 import { createUniqueShortCode } from '../utils/shortCode';
 import logger from '../logger';  
-
-const shortenSchema = z.object({
-    url: z.string().url({ message: 'Invalid URL ' }),
-});
+import { AuthenticatedRequest } from '../middleware/auth';
 
 
-export const shorten = async (req: Request, res: Response) => {
+export const shorten = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { url } = shortenSchema.parse(req.body);
+    const { url, customAlias } = z.object({
+      url: z.string().url(),
+      customAlias: z.string().optional(),
+    }).parse(req.body);
 
     // Normalize URL (optional but good practice)
     const normalizedUrl = new URL(url).toString();
 
-    // Check if this exact URL already exists (to avoid duplicates)
-    const existing = await prisma.shortLink.findFirst({
-      where: { originalUrl: normalizedUrl },
-    });
+    let shortCode : string;
 
-    if (existing) {
-      const baseUrl = process.env.RAILWAY_URL|| 'http://localhost:5001';
-      const shortUrl = `${baseUrl}/api/${existing.shortCode}`;
-      return res.json({
-        shortUrl,
-        originalUrl: normalizedUrl,
-        shortCode: existing.shortCode,
-        message: 'Existing link reused',
+
+    if (customAlias) {
+      const existing = await prisma.shortLink.findUnique({
+        where: { shortCode: customAlias },
       });
-    }
 
-    // Generate unique short code
-    const shortCode = await createUniqueShortCode();
+      if (existing) {
+        return res.status(404).json({ error: 'Custom alias already taken' });
+      }
+      shortCode = customAlias;
+    } else {
+      shortCode = await createUniqueShortCode();
+    }
 
     // Create the link (userId null for now – anonymous)
     const newLink = await prisma.shortLink.create({
       data: {
         shortCode,
         originalUrl: normalizedUrl,
-        userId: null,           // we'll link to auth later
-        expiresAt: null,        // add later if you want expiration
+        userId: req.user?.userId || null,           // we'll link to auth later
       },
     });
 
@@ -53,8 +49,8 @@ export const shorten = async (req: Request, res: Response) => {
 
     res.status(201).json({
       shortUrl,
+      shortCode,
       originalUrl: normalizedUrl,
-      shortCode: newLink.shortCode,
     });
   } catch (err) {
     if (err instanceof z.ZodError) {
@@ -162,4 +158,22 @@ export const getStats = async (req: Request, res: Response) => {
   }
 };
 
+export const getMyLinks = async (req: AuthenticatedRequest, res: Response) => {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
 
+  try {
+    const links = await prisma.shortLink.findMany({
+      where: { userId: req.user.userId },
+      orderBy: { createdAt: 'desc' },
+      select: { shortCode: true, originalUrl: true, clicks: true, createdAt: true },
+    
+    take:20,
+    });
+    res.json({ links });
+  } catch (err) {
+    logger?.error(err);
+    res.status(500).json({ error: 'Failed to fetch links', details: String(err) });
+  }
+}
