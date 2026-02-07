@@ -164,6 +164,7 @@ export const getMyLinks = async (req: AuthenticatedRequest, res: Response) => {
   }
 
   try {
+    
     const links = await prisma.shortLink.findMany({
       where: { userId: req.user.userId },
       orderBy: { createdAt: 'desc' },
@@ -171,7 +172,13 @@ export const getMyLinks = async (req: AuthenticatedRequest, res: Response) => {
     
     take:20,
     });
-    res.json({ links });
+    const baseUrl = process.env.RAILWAY_URL || 'http://localhost:5001';
+    const enrichedLinks = links.map(link => ({
+      ...link,
+      shortUrl: `${baseUrl}/api/${link.shortCode}`,
+    }));
+
+    res.json({ links: enrichedLinks });
   } catch (err) {
     logger?.error(err);
     res.status(500).json({ error: 'Failed to fetch links', details: String(err) });
