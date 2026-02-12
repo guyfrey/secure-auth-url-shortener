@@ -11,9 +11,11 @@ COPY packages/*/package*.json ./
 
 RUN npm ci
 
-# Fix permissions
-RUN find node_modules/.bin -type f -exec chmod +x {} \; || true
-RUN chmod -R +x node_modules/prisma node_modules/.prisma node_modules/typescript/bin || true
+# CRITICAL: Fix Prisma executable permissions (Alpine/Debian quirk)
+RUN chmod 755 node_modules/.bin/prisma || true
+RUN chmod 755 node_modules/prisma/build/index.js || true
+RUN chmod -R 755 node_modules/.prisma || true
+RUN chmod -R 755 node_modules/prisma || true
 
 COPY . .
 
