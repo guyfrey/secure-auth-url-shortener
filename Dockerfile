@@ -4,8 +4,7 @@ FROM node:20-slim AS builder
 WORKDIR /app
 
 # Install minimal deps for Prisma engines on Alpine
-RUN apt-get update && apt-get install -y openssl
-
+RUN apt-get update && apt-get install -y openssl libssl-dev libpq-dev
 # Copy package files first (caching)
 COPY package*.json ./
 COPY apps/*/package*.json ./
@@ -21,8 +20,7 @@ RUN chmod -R +x node_modules/.prisma || true
 COPY . .
 
 # Generate Prisma client from shared schema
-RUN node node_modules/prisma/build/index.js generate --schema=packages/db/prisma/schema.prisma# Build your apps
-
+RUN cd packages/db && npm run prisma:generate
 
 RUN npm run build --workspace=apps/auth || echo "Auth build skipped or failed"
 RUN npm run build --workspace=apps/shortener || echo "Shortener build skipped or failed"
