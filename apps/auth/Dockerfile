@@ -22,7 +22,7 @@ COPY . .
 RUN chmod +x node_modules/prisma/build/index.js || true
 RUN chmod +x node_modules/.bin/prisma || true
 RUN chmod -R +x ./node_modules/.prisma || true
-
+RUN ls -la ./node_modules/.bin/prisma && ls -la ./node_modules/prisma/build/index.js
 # Generate Prisma client explicitly
 RUN cd packages/db && npx prisma generate --schema=prisma/schema.prisma || (echo "Generate failed" && exit 1)
 
