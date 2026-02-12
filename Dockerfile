@@ -14,15 +14,12 @@ COPY packages/*/package*.json ./
 # Install all deps
 RUN npm ci
 
-RUN chmod -R +x node_modules/.bin || true
-RUN chmod -R +x node_modules/typescript/bin || true
-RUN chmod -R +x node_modules/prisma || true
-RUN chmod -R +x node_modules/.prisma || true
+COPY package*.json ./
+COPY apps/*/package*.json ./
+COPY packages/*/package*.json ./
 
-# Copy source code
+
 COPY . .
-
-
 
 # Generate Prisma client from shared schema
 RUN cd packages/db && npx prisma generate --schema=prisma/schema.prisma
