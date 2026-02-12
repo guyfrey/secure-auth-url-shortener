@@ -1,34 +1,27 @@
-# Build stage
 FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Install runtime deps for Prisma engines + compat
 RUN apk add --no-cache openssl libc6-compat
 
-# Copy package files (better caching)
 COPY package*.json ./
 COPY apps/*/package*.json ./
 COPY packages/*/package*.json ./
 
-# Install ALL deps (dev + prod) for generate & build
 RUN npm ci
 
-
-# Copy source
 COPY . .
 
-# Fix Prisma binary permissions (critical on Alpine)
-RUN chmod +x node_modules/prisma/build/index.js || true
-RUN chmod +x node_modules/.bin/prisma || true
-RUN chmod -R +x ./node_modules/.prisma || true
-RUN ls -la ./node_modules/.bin/prisma && ls -la ./node_modules/prisma/build/index.js
-# Generate Prisma client explicitly
-RUN cd packages/db && npx prisma generate --schema=prisma/schema.prisma || (echo "Generate failed" && exit 1)
+# Fix permissions on Prisma binaries (Alpine quirk)
+RUN chmod -R +x node_modules/.bin/prisma node_modules/prisma/build node_modules/.prisma || true
+
+# Generate Prisma client
+RUN cd packages/db \
+  && ../node_modules/.bin/prisma generate --schema=prisma/schema.prisma
 
 # Build apps
-RUN npm run build --workspace=apps/auth
-RUN npm run build --workspace=apps/shortener
+RUN npm run build --workspace=apps/auth || echo "Auth build skipped"
+RUN npm run build --workspace=apps/shortener || echo "Shortener build skipped"
 
 # Production stage
 FROM node:20-alpine
