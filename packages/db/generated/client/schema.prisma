@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  role         Role     @default(USER)
+  isVerified   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // New fields
+  verificationToken    String?
+  verificationExpires  DateTime?
+  passwordResetToken   String?
+  passwordResetExpires DateTime?
+
+  shortLInks ShortLink[]
+
+  @@map("users")
+}
+
+model ShortLink {
+  id          String    @id @default(cuid())
+  shortCode   String    @unique
+  originalUrl String
+  userId      String?
+  user        User?     @relation(fields: [userId], references: [id])
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime?
+  clicks      Int       @default(0)
+
+  @@map("short_links")
+}
+
+model Click {
+  id        String   @id @default(cuid())
+  linkId    String
+  clickedAt DateTime @default(now())
+  ip        String?
+  country   String?
+  referrer  String?
+  userAgent String?
+
+  @@map("clicks")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
