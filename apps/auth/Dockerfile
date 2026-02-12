@@ -1,46 +1,44 @@
-# Stage 1: Builder
-FROM node:20-slim AS builder
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 make g++ openssl ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+# Build stage
+FROM node:20-alpine AS builder
 
 WORKDIR /app
+
+RUN apk add --no-cache openssl libc6-compat
 
 COPY package*.json ./
+COPY apps/auth/package*.json ./apps/auth/
+COPY packages/db/package*.json ./packages/db/
 
-RUN corepack enable && pnpm install --frozen-lockfile
-
-# Fix permissions on ALL npm bin scripts (critical for tsc/npx wrappers)
-RUN chmod +x ./node_modules/.bin/* || true
-
-# Optional: If still issues, make tsc globally available too
-RUN npm install -g typescript
-
+RUN npm ci
 
 COPY . .
-RUN npx prisma generate --schema=../../packages/db/prisma/schema.prisma
-# Build – use plain tsc to avoid npx wrapper issues
-RUN tsc   # ← Change from npm run build if needed, or keep npm run build after updating scripts below
 
+# Generate Prisma client from shared location
+RUN npx prisma generate --schema=packages/db/prisma/schema.prisma
 
-# Stage 2: Production runner
-FROM node:20-slim
+# Build only auth
+RUN cd apps/auth && npm run build
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libc6 ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+# Production stage
+FROM node:20-alpine
 
 WORKDIR /app
 
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/src ./src
+RUN apk add --no-cache openssl libc6-compat
 
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/packages/db/generated ./packages/db/generated
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/apps/auth/package*.json ./apps/auth/
+COPY --from=builder /app/packages/db/package*.json ./packages/db/
+
 RUN npm ci --omit=dev
 
+# Copy built auth files
+COPY --from=builder /app/apps/auth/dist ./apps/auth/dist
+
+# Copy shared Prisma client + engines
+COPY --from=builder /app/packages/db/generated ./packages/db/generated
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
 
-CMD ["npm", "start"]
+
+CMD ["npm", "start", "--prefix", "apps/auth"]
