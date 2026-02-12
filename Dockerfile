@@ -1,10 +1,10 @@
 # Build stage
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 
 WORKDIR /app
 
 # Install minimal deps for Prisma engines on Alpine
-RUN apk add --no-cache openssl libc6-compat
+RUN apt-get update && apt-get install -y openssl
 
 # Copy package files first (caching)
 COPY package*.json ./
@@ -17,6 +17,8 @@ RUN npm ci
 COPY package*.json ./
 COPY apps/*/package*.json ./
 COPY packages/*/package*.json ./
+RUN chmod +x node_modules/.bin/prisma || true
+RUN chmod -R +x node_modules/.prisma || true
 
 
 COPY . .
@@ -30,11 +32,11 @@ RUN npm run build --workspace=apps/auth || echo "Auth build skipped or failed"
 RUN npm run build --workspace=apps/shortener || echo "Shortener build skipped or failed"
 
 # Production stage
-FROM node:20-alpine
+FROM node:20-slim
 
 WORKDIR /app
 
-RUN apk add --no-cache openssl libc6-compat
+RUN apt-get update && apt-get install -y openssl
 
 # Copy package files
 COPY --from=builder /app/package*.json ./
