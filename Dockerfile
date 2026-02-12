@@ -1,25 +1,29 @@
 # Build stage
-FROM node:20 AS builder
+FROM node:20-slim AS builder
 
 WORKDIR /app
 
+# Install runtime deps
 RUN apt-get update && apt-get install -y openssl libssl-dev libpq-dev && rm -rf /var/lib/apt/lists/*
 
+# Copy package files for caching
 COPY package*.json ./
 COPY apps/*/package*.json ./
 COPY packages/*/package*.json ./
 
+# Install all deps
 RUN npm ci
 
-# CRITICAL: Fix Prisma executable permissions (Alpine/Debian quirk)
-RUN chmod 755 node_modules/.bin/prisma || true
-RUN chmod 755 node_modules/prisma/build/index.js || true
-RUN chmod -R 755 node_modules/.prisma || true
-RUN chmod -R 755 node_modules/prisma || true
+# CRITICAL: Fix executable permissions on ALL npm binaries (this is the key step)
+RUN chmod 755 node_modules/.bin/* || true
+RUN find node_modules -type f -name "*.js" -exec chmod 755 {} \; || true
+RUN chmod -R 755 node_modules/prisma node_modules/.prisma node_modules/typescript/bin || true
+RUN chmod -R 755 node_modules/.bin/prisma node_modules/prisma/build/index.js || true
 
+# Copy source code
 COPY . .
 
-# Generate Prisma client (full path, no cd)
+# Generate Prisma client
 RUN npx prisma generate --schema=packages/db/prisma/schema.prisma
 
 # Build apps
