@@ -14,12 +14,14 @@ COPY packages/*/package*.json ./
 # Install ALL deps (dev + prod) for generate & build
 RUN npm ci
 
+
 # Copy source
 COPY . .
 
 # Fix Prisma binary permissions (critical on Alpine)
 RUN chmod +x node_modules/prisma/build/index.js || true
 RUN chmod +x node_modules/.bin/prisma || true
+RUN chmod -R +x ./node_modules/.prisma || true
 
 # Generate Prisma client explicitly
 RUN cd packages/db && npx prisma generate --schema=prisma/schema.prisma || (echo "Generate failed" && exit 1)
@@ -53,6 +55,7 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
 # Copy schema (optional but safe)
 COPY --from=builder /app/packages/db/prisma ./packages/db/prisma
+COPY --from=builder /app/packages/db/generated ./packages/db/generated
 
 # Permissions fix again in prod stage
 RUN chmod -R +x node_modules/.prisma || true
