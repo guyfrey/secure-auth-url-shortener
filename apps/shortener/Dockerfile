@@ -6,7 +6,7 @@ RUN apk add --no-cache openssl libc6-compat
 RUN apt-get update -y && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
-RUN corepack enable && pnpm install --frozen-lockfile
+RUN npm ci
 
 
 

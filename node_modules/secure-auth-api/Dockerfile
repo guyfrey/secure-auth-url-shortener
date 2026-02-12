@@ -9,7 +9,7 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm ci
+RUN corepack enable && pnpm install --frozen-lockfile
 
 # Fix permissions on ALL npm bin scripts (critical for tsc/npx wrappers)
 RUN chmod +x ./node_modules/.bin/* || true
