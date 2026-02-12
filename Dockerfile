@@ -45,9 +45,8 @@ COPY --from=builder /app/packages/*/package*.json ./
 RUN npm ci --omit=dev
 
 # Copy built files
-COPY --from=builder /app/apps/auth/dist ./apps/auth/dist || true
-COPY --from=builder /app/apps/shortener/dist ./apps/shortener/dist || true
-
+COPY --from=builder /app/apps/auth/dist ./apps/auth/dist 
+COPY --from=builder /app/apps/shortener/dist ./apps/shortener/dist 
 # Copy Prisma generated client + engines (this is the key part)
 COPY --from=builder /app/packages/db/generated ./packages/db/generated
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
