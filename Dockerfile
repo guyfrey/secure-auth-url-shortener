@@ -11,26 +11,18 @@ COPY packages/*/package*.json ./
 
 RUN npm ci
 
-# Fix permissions aggressively
+# Fix permissions
 RUN find node_modules/.bin -type f -exec chmod +x {} \; || true
-RUN find node_modules -type f -name "*.js" -exec chmod +x {} \; || true
 RUN chmod -R +x node_modules/prisma node_modules/.prisma node_modules/typescript/bin || true
 
 COPY . .
 
-# Generate Prisma client
-RUN cd packages/db && npx prisma generate --schema=prisma/schema.prisma
+# Generate Prisma client (full path, no cd)
+RUN npx prisma generate --schema=packages/db/prisma/schema.prisma
 
-# Debug: show if build commands are running
-RUN echo "Starting auth build"
-RUN npm run build --workspace=apps/auth || echo "Auth build failed or skipped"
-
-RUN echo "Starting shortener build"
+# Build apps
+RUN npm run build --workspace=apps/auth || echo "Auth build skipped or failed"
 RUN npm run build --workspace=apps/shortener || echo "Shortener build failed or skipped"
-
-# Debug: show if dist folders exist
-RUN ls -la apps/auth/dist || echo "auth dist not found"
-RUN ls -la apps/shortener/dist || echo "shortener dist not found"
 
 # Production stage
 FROM node:20-slim
@@ -45,13 +37,12 @@ COPY --from=builder /app/packages/*/package*.json ./
 
 RUN npm ci --omit=dev
 
-# Fix permissions again
+# Fix permissions in production
 RUN find node_modules/.bin -type f -exec chmod +x {} \; || true
 RUN chmod -R +x node_modules/prisma node_modules/.prisma || true
 
-# Copy built files (optional – won't fail build if missing)
-COPY --from=builder /app/apps/auth/dist ./apps/auth/dist || true
-COPY --from=builder /app/apps/shortener/dist ./apps/shortener/dist || true
+COPY --from=builder /app/apps/auth/dist ./apps/auth/dist
+COPY --from=builder /app/apps/shortener/dist ./apps/shortener/dist
 
 COPY --from=builder /app/packages/db/generated ./packages/db/generated
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
