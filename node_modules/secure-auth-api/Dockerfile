@@ -6,8 +6,8 @@ WORKDIR /app
 RUN apk add --no-cache openssl libc6-compat
 
 COPY package*.json ./
-COPY apps/auth/package*.json ./apps/auth/
-COPY packages/db/package*.json ./packages/db/
+COPY apps/auth/package*.json apps/auth/
+COPY packages/db/package*.json packages/db/
 
 RUN npm ci
 
@@ -27,8 +27,8 @@ WORKDIR /app
 RUN apk add --no-cache openssl libc6-compat
 
 COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/apps/auth/package*.json ./apps/auth/
-COPY --from=builder /app/packages/db/package*.json ./packages/db/
+COPY --from=builder /app/apps/auth/package*.json apps/auth/
+COPY --from=builder /app/packages/db/package*.json packages/db/
 
 RUN npm ci --omit=dev
 
