@@ -14,6 +14,8 @@ COPY packages/*/package*.json ./
 # Install ALL deps (dev + prod) for generate & build
 RUN npm ci
 
+RUN chmod +x node_modules/.bin/prisma || true
+RUN chmod -R +x node_modules/.prisma || true
 # Copy source
 COPY . .
 
