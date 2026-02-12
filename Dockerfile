@@ -24,8 +24,7 @@ RUN chmod -R +x node_modules/.prisma || true
 COPY . .
 
 # Generate Prisma client from shared schema
-RUN cd packages/db && npx prisma generate --schema=prisma/schema.prisma
-
+RUN cd packages/db && npm run prisma:generate
 
 # Build your apps
 RUN npm run build --workspace=apps/auth || echo "Auth build skipped or failed"
