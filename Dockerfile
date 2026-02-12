@@ -14,17 +14,15 @@ COPY packages/*/package*.json ./
 # Install all deps
 RUN npm ci
 
-RUN find node_modules/.bin -type f -exec chmod +x {} \; || true
-RUN find node_modules -name "*.js" -exec chmod +x {} \; || true
+RUN chmod -R +x node_modules/.bin || true
+RUN chmod -R +x node_modules/typescript/bin || true
+RUN chmod -R +x node_modules/prisma || true
 RUN chmod -R +x node_modules/.prisma || true
 
 # Copy source code
 COPY . .
 
-# Explicitly fix Prisma binary permissions (critical on Alpine)
-RUN chmod +x ./node_modules/prisma/build/index.js || true
-RUN chmod +x ./node_modules/.bin/prisma || true
-RUN chmod -R +x ./node_modules/.prisma || true
+
 
 # Generate Prisma client from shared schema
 RUN cd packages/db && npx prisma generate --schema=prisma/schema.prisma
