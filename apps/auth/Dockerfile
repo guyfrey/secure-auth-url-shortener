@@ -19,7 +19,7 @@ RUN npm install -g typescript
 
 
 COPY . .
-
+RUN npx prisma generate --schema=../../packages/db/prisma/schema.prisma
 # Build – use plain tsc to avoid npx wrapper issues
 RUN tsc   # ← Change from npm run build if needed, or keep npm run build after updating scripts below
 
@@ -36,6 +36,9 @@ WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/src ./src
+
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/packages/db/generated ./packages/db/generated
 RUN npm ci --omit=dev
 
 

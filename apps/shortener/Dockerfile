@@ -1,7 +1,7 @@
 # Build stage
 FROM node:20-slim AS builder
 WORKDIR /app
-
+RUN apk add --no-cache openssl libc6-compat
 # Install OpenSSL to silence detection warning (optional but recommended)
 RUN apt-get update -y && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
@@ -12,7 +12,6 @@ RUN npm ci
 
 
 COPY . .
-
 RUN npm run build
 
 # Production stage
