@@ -29,7 +29,7 @@ RUN chmod -R +x ./node_modules/.prisma || true
 # Generate Prisma client from shared schema
 RUN cd packages/db && npx prisma generate --schema=prisma/schema.prisma
 
-RUN ls -la node_modules/.bin/tsc && ls -la node_modules/typescript/bin/tsc
+
 # Build your apps
 RUN npm run build --workspace=apps/auth || echo "Auth build skipped or failed"
 RUN npm run build --workspace=apps/shortener || echo "Shortener build skipped or failed"
