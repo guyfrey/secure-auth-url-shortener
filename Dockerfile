@@ -21,8 +21,7 @@ RUN chmod -R +x node_modules/.prisma || true
 COPY . .
 
 # Generate Prisma client from shared schema
-RUN cd packages/db && npm run prisma:generate
-
+RUN cd packages/db && npx --no-install prisma generate --schema=prisma/schema.prisma
 # Build your apps
 RUN npm run build --workspace=apps/auth || echo "Auth build skipped or failed"
 RUN npm run build --workspace=apps/shortener || echo "Shortener build skipped or failed"
