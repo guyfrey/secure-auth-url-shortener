@@ -8,8 +8,7 @@ RUN apt-get update -y && apt-get install -y openssl ca-certificates && rm -rf /v
 COPY package*.json ./
 RUN npm ci
 
-COPY prisma ./prisma
-RUN npx prisma generate
+
 
 
 COPY . .
@@ -27,9 +26,8 @@ COPY --from=builder /app/package*.json ./
 RUN npm ci --only=production
 
 # Copy generated Prisma client & engines (required at runtime)
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/prisma ./prisma
+
 
 CMD ["npm", "start"]

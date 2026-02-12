@@ -17,11 +17,6 @@ RUN chmod +x ./node_modules/.bin/* || true
 # Optional: If still issues, make tsc globally available too
 RUN npm install -g typescript
 
-# Copy Prisma schema early for generate
-COPY prisma ./prisma
-
-# Generate Prisma Client (now with fixed perms)
-RUN npx prisma generate
 
 COPY . .
 
@@ -40,11 +35,8 @@ WORKDIR /app
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma  
 COPY --from=builder /app/src ./src
 RUN npm ci --omit=dev
-RUN npx prisma generate
 
 
 
