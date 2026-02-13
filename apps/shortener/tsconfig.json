@@ -14,7 +14,7 @@
     "declarationMap": true,
     "sourceMap": true,
     "types": [//"jest,"
-     "node","express"],  // Keep this for Jest globals
+     "node","express"], 
     "isolatedModules": true
     
   },

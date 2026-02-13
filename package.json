@@ -10,7 +10,7 @@
     "dev:auth": "cd apps/auth && npm run dev",
     "dev:shortener": "cd apps/shortener && npm run dev"
   },
-  "devDependencies": {
-    "@types/express-rate-limit": "^6.0.2"
+  "dependencies": {
+    "express-rate-limit": "^8.2.1"
   }
 }

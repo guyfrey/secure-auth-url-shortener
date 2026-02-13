@@ -1,12 +1,12 @@
 import {Router} from 'express';
 import { shorten ,redirect, getStats, getMyLinks, getDashboardSummary} from '../controllers/link.controller';
 import { protect } from '../middleware/auth';
-import { limiter, userRateLimiter  } from '../middleware/rateLimit';
+import { limiter, userLimiter  } from '../middleware/rateLimit';
 
 const router = Router();
 
 router.post('/shorten', limiter, shorten); // public
-router.post('/protected-shorten', protect, userRateLimiter, shorten); // protected
+router.post('/protected-shorten', protect, userLimiter, shorten); // protected
 
 router.get('/my/links',protect,getMyLinks);
 
