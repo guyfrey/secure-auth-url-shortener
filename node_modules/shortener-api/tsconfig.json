@@ -18,12 +18,12 @@
     "isolatedModules": true
   },
   "include": ["src/**/*"],
-  //"exclude": [
-    //"node_modules",
+  "exclude": [
+    "node_modules",
     //"dist",
     //"**/*.test.ts",          // ← Exclude all test files
     //"**/*.spec.ts",
     //"jest.setup.ts",         // ← Explicitly exclude setup
     //"jest.config.ts"         // ← If you have it
- // ]
+ ]
 }
