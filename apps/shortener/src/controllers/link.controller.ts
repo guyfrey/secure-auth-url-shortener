@@ -7,7 +7,7 @@ import logger from '../logger';
 import { AuthenticatedRequest } from '../middleware/auth';
 
 
-export const shorten = async (req: AuthenticatedRequest, res: Response) => {
+export const shorten = async (req: Request, res: Response) => {
   try {
     const { url, customAlias,expiresInDays } = z.object({
       url: z.string().url(),
