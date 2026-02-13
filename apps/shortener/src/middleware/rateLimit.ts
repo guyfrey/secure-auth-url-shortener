@@ -1,20 +1,26 @@
 import rateLimit from 'express-rate-limit';
-import { Request, Response, NextFunction } from 'express';
-import { AuthenticatedRequest } from '../middleware/auth'; // your extended interface
+import { Request, Response } from 'express';
+import { AuthenticatedRequest } from '../middleware/auth';
 
 export const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // limit each IP to 100 requests per window
-  message: { error: 'Too many requests, please try again later.' },
-  keyGenerator: (req: Request) => req.ip || 'anonymous', // use plain Request here
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: 'Too many requests, please try again later.',
+  handler: (req: Request, res: Response) => {
+    res.status(429).json({ error: 'Too many requests, please try again later.' });
+  },
+  keyGenerator: (req: Request) => req.ip || 'anonymous',
 });
 
-// If you need to use AuthenticatedRequest for custom logic (e.g. per-user limit)
 export const userRateLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 10, // 10 requests per hour per user
+  windowMs: 60 * 60 * 1000,
+  max: 10,
+  message: 'Too many requests, please try again later.',
+  handler: (req: Request, res: Response) => {
+    res.status(429).json({ error: 'Too many requests, please try again later.' });
+  },
   keyGenerator: (req: AuthenticatedRequest) => {
     return req.user ? req.user.userId : req.ip || 'anonymous';
   },
-  skip: (req: AuthenticatedRequest) => !req.user, // skip for unauthenticated
+  skip: (req: AuthenticatedRequest) => !req.user,
 });
