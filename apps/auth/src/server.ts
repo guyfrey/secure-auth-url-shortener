@@ -1,5 +1,5 @@
-import dotenv from 'dotenv';
-dotenv.config(); // Load environment variables early
+//import dotenv from 'dotenv';
+//dotenv.config(); // Load environment variables early
 
 import express from 'express';
 import cors from 'cors';
