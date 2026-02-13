@@ -18,8 +18,9 @@ RUN chmod -R 755 node_modules/prisma node_modules/.prisma node_modules/typescrip
 
 COPY . .
 
+RUN ls -la node_modules/.bin/prisma || echo "prisma binary missing"
 # Generate Prisma client once (shared)
-RUN npx prisma generate --schema=packages/db/prisma/schema.prisma
+RUN ./node_modules/.bin/prisma generate --schema=packages/db/prisma/schema.prisma
 
 # Build both apps (both will have dist folders)
 RUN npm run build --workspace=apps/auth || echo "Auth build skipped"
