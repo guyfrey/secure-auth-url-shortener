@@ -16,6 +16,7 @@
     "types": [//"jest,"
      "node","express"],  // Keep this for Jest globals
     "isolatedModules": true
+    
   },
   "include": ["src/**/*"],
   "exclude": [
@@ -26,4 +27,5 @@
     //"jest.setup.ts",         // ← Explicitly exclude setup
     //"jest.config.ts"         // ← If you have it
  ]
+ 
 }

@@ -24,3 +24,4 @@ export const userRateLimiter = rateLimit({
   },
   skip: (req: AuthenticatedRequest) => !req.user,
 });
+
