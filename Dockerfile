@@ -48,14 +48,11 @@ COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/apps/*/package*.json ./
 COPY --from=builder /app/packages/*/package*.json ./
 
-COPY --from=builder /app/apps ./apps
+COPY --from=builder /app /app
 
-COPY --from=builder /app/packages/db ./packages/db
 
 RUN npm ci --omit=dev
-# Install workspace-specific deps (important!)
-RUN cd apps/auth && npm ci --omit=dev
-RUN cd apps/shortener && npm ci --omit=dev
+
 
 # Fix permissions in production stage too
 RUN chmod 755 node_modules/.bin/prisma || true
