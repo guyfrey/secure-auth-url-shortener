@@ -48,6 +48,9 @@ COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/apps/*/package*.json ./
 COPY --from=builder /app/packages/*/package*.json ./
 
+COPY --from=builder /app/apps ./apps
+COPY --from=builder /app/packages ./packages
+
 RUN npm ci --omit=dev
 # Install workspace-specific deps (important!)
 RUN cd apps/auth && npm ci --omit=dev
