@@ -45,7 +45,7 @@ export const shorten = async (req: AuthenticatedRequest, res: Response) => {
         shortCode,
         expiresAt,
         originalUrl: normalizedUrl,
-        userId: req.user?.userId || null,           // we'll link to auth later
+        userId: (req as any).user?.userId || null,           // we'll link to auth later
       },
     });
 
