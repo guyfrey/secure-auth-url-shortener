@@ -6,10 +6,11 @@
     "apps/*",
     "packages/*"
   ],
-  "scripts": {
-    "dev:auth": "cd apps/auth && npm run dev",
-    "dev:shortener": "cd apps/shortener && npm run dev"
-  },
+"scripts": {
+  "start:auth": "cd apps/auth && npm run start",
+  "start:shortener": "cd apps/shortener && npm run start"
+},
+  
   "dependencies": {
     "express-rate-limit": "^8.2.1"
   }
