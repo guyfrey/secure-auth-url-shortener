@@ -50,6 +50,7 @@ COPY --from=builder /app/packages/*/package*.json ./
 
 COPY --from=builder /app/apps ./apps
 COPY --from=builder /app/packages ./packages
+COPY --from=builder /app/packages/db ./packages/db
 
 RUN npm ci --omit=dev
 # Install workspace-specific deps (important!)
