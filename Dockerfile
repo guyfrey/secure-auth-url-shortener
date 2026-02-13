@@ -68,4 +68,4 @@ COPY --from=builder /app/packages/db/prisma ./packages/db/prisma
 ENV NODE_ENV=production
 ENV PORT=8080
 
-CMD ["sh", "-c", "npm run start --workspace=apps/$APP_TO_RUN"]
+CMD ["sh", "-c", "cd apps/$APP_TO_RUN && npm run start"]
