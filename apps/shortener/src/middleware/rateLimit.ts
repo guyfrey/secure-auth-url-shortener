@@ -1,27 +1,20 @@
 import rateLimit from 'express-rate-limit';
 import { Request, Response, NextFunction } from 'express';
-import { redis } from '../services/redis';
-import { AuthenticatedRequest } from './auth';
+import { AuthenticatedRequest } from '../middleware/auth'; // your extended interface
 
+export const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per window
+  message: { error: 'Too many requests, please try again later.' },
+  keyGenerator: (req: Request) => req.ip || 'anonymous', // use plain Request here
+});
 
-const keyGenerator = (req: AuthenticatedRequest) => {
-    if(req.user?.userId) {
-        return `rate:shorten:user:${req.user.userId}`;
-    }
-    return `rate:shorten:ip:${req.ip}`;
-};
-
-export const shortenRateLimiter = rateLimit({
-    windowMs: 24*60 * 60 * 1000, // 24 hour
-    max: 15, // limit each user/IP to 100 requests per windowMs
-    keyGenerator,
-    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-    handler: (req: Request, res: Response) => {
-        res.status(429).json({ error: 'Too many requests, please try again later.' });
-    },
-    skip:(req:Request) => {
-        return false;
-
-    },
+// If you need to use AuthenticatedRequest for custom logic (e.g. per-user limit)
+export const userRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 50, // 50 requests per hour per user
+  keyGenerator: (req: AuthenticatedRequest) => {
+    return req.user ? req.user.userId : req.ip || 'anonymous';
+  },
+  skip: (req: AuthenticatedRequest) => !req.user, // skip for unauthenticated
 });
