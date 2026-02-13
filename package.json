@@ -7,8 +7,8 @@
     "packages/*"
   ],
 "scripts": {
-  "start:auth": "cd apps/auth && npm run start",
-  "start:shortener": "cd apps/shortener && npm run start"
+  "start-auth": "cd apps/auth && npm run start",
+  "start-shortener": "cd apps/shortener && npm run start"
 },
   
   "dependencies": {
