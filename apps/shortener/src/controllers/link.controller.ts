@@ -45,7 +45,7 @@ export const shorten = async (req: Request, res: Response) => {
         shortCode,
         expiresAt,
         originalUrl: normalizedUrl,
-        userId: (req as any).user?.userId || null,           // we'll link to auth later
+        userId: (req as any).user?.userId || null,           
       },
     });
 
@@ -178,7 +178,7 @@ export const getStats = async (req: AuthenticatedRequest, res: Response) => {
           .sort(([a], [b]) => b.localeCompare(a)) // sort by date desc
           .slice(0, 7) // last 7 days
       ),
-      isOwnedByUser: !!req.user && req.user.userId === link.userId,
+      isOwnedByUser: !!req.user && String(req.user.userId) === String(link.userId),
 
     });
   } catch (err) {

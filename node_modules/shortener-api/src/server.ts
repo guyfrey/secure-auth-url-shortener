@@ -1,7 +1,7 @@
-//import dotenv from 'dotenv';
+import dotenv from 'dotenv';
 
 
-//dotenv.config();
+dotenv.config();
 
 import express from 'express';
 import cors from 'cors';
@@ -9,7 +9,7 @@ import linkRoutes from './routes/link.routes';
 import logger from './logger';
 import { connectRedis } from './services/redis';
 
-//test
+
 
 const apps = express();
 const PORT = process.env.PORT || 5001;
