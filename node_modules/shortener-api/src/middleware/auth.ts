@@ -31,7 +31,9 @@ export const optionalProtect = (req: AuthenticatedRequest, res: Response, next: 
         const payload = verifyAccessToken(token);
         req.user = payload;
         
-    } catch {       
+    } catch (err) {       
+        console.warn('Invalid token:', err);
+
     }
 }
     next();
