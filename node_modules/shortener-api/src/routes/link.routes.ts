@@ -1,6 +1,6 @@
 import {Router} from 'express';
 import { shorten ,redirect, getStats, getMyLinks, getDashboardSummary} from '../controllers/link.controller';
-import { protect } from '../middleware/auth';
+import { protect, optionalProtect } from '../middleware/auth';
 import { limiter, userLimiter  } from '../middleware/rateLimit';
 
 const router = Router();
@@ -12,7 +12,7 @@ router.get('/my/links',protect,getMyLinks);
 
 router.get('/dashboard/summary',protect,getDashboardSummary);
 
-router.get('/:shortCode/stats',getStats);
+router.get('/:shortCode/stats',optionalProtect,getStats);
 
 
 router.get('/:shortCode',redirect);
