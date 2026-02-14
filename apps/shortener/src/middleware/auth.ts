@@ -26,6 +26,7 @@ export const optionalProtect = (req: AuthenticatedRequest, res: Response, next: 
     const authHeader = req.headers.authorization;   
     if(authHeader?.startsWith('Bearer ')) {
         const token = authHeader.split(' ')[1];
+        console.log('Token found in optionalProtect:', token);
     
     try {
         const payload = verifyAccessToken(token);
@@ -35,7 +36,7 @@ export const optionalProtect = (req: AuthenticatedRequest, res: Response, next: 
         console.warn('Invalid token:', err);
 
     }
-}
+    }
     next();
 };
 
