@@ -26,11 +26,11 @@ export const optionalProtect = (req: AuthenticatedRequest, res: Response, next: 
     const authHeader = req.headers.authorization;   
     if(authHeader?.startsWith('Bearer ')) {
         const token = authHeader.split(' ')[1];
-        console.log('Token found in optionalProtect:', token);
     
     try {
         const payload = verifyAccessToken(token);
         req.user = payload;
+        console.log('Authenticated user:', payload);
         
     } catch (err) {       
         console.warn('Invalid token:', err);
