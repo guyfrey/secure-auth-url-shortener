@@ -72,4 +72,5 @@ COPY --from=builder /app/packages/db/prisma ./packages/db/prisma
 ENV NODE_ENV=production
 ENV PORT=8080
 
-CMD ["sh", "-c", "cd apps/$APP_TO_RUN && node dist/server.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy --schema=packages/db/prisma/schema.prisma && cd apps/$APP_TO_RUN && node dist/server.js"]
+
