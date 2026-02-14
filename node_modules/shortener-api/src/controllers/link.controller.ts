@@ -136,7 +136,9 @@ export const redirect = async (req: Request, res: Response) => {
 
 export const getStats = async (req: AuthenticatedRequest, res: Response) => {
   const { shortCode } = req.params;
-  
+  if(req.user){
+    logger.info(`Stats requested for ${shortCode} by user ${req.user.userId}`);
+  }
   try {
     const link = await prisma.shortLink.findUnique({
       where: { shortCode },
